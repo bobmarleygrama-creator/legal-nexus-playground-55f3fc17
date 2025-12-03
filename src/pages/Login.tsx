@@ -142,17 +142,6 @@ const Login = () => {
             </Link>
           </p>
 
-          {/* Demo accounts info */}
-          <div className="mt-8 p-4 bg-muted/50 rounded-xl">
-            <p className="text-xs text-muted-foreground text-center mb-2 font-medium">
-              Contas de demonstração:
-            </p>
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p>👤 Cliente: joao@email.com / Senha123</p>
-              <p>⚖️ Advogado: maria@email.com / Senha123</p>
-              <p>🔐 Admin: admin@email.com / Admin123</p>
-            </div>
-          </div>
         </div>
       </motion.div>
     </div>

@@ -68,14 +68,10 @@ const ClienteDashboard = () => {
   }, [aiSuggestion]);
 
   const calculatePrice = () => {
-    // Simulate price based on complexity (word count)
-    const wordCount = resumo.split(" ").length;
-    let base = 10000; // R$ 100,00
-    if (wordCount > 20) base += 5000;
-    if (wordCount > 50) base += 10000;
-    if (areaJuridica === "Criminal") base += 15000;
-    if (areaJuridica === "Empresarial") base += 10000;
-    return base + Math.floor(Math.random() * 5000);
+    // Generate price between R$ 10.00 and R$ 15.00 (1000 to 1500 cents)
+    const minPrice = 1000; // R$ 10,00
+    const maxPrice = 1500; // R$ 15,00
+    return minPrice + Math.floor(Math.random() * (maxPrice - minPrice + 1));
   };
 
   const handleSubmitCase = () => {
@@ -370,7 +366,7 @@ const ClienteDashboard = () => {
               R$ {(estimatedPrice / 100).toFixed(2)}
             </p>
             <span className="text-sm text-muted-foreground">
-              Complexidade: {estimatedPrice < 15000 ? "Baixa" : estimatedPrice < 25000 ? "Média" : "Alta"}
+              Custo L-COIN: {(estimatedPrice / 100).toFixed(2)}
             </span>
           </div>
 

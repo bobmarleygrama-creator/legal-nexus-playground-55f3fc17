@@ -74,7 +74,7 @@ const initializeData = () => {
         resumo: "Fui demitido injustamente após 5 anos na empresa. Não recebi as verbas rescisórias corretamente e preciso de orientação sobre meus direitos trabalhistas.",
         status: "em_atendimento",
         criado_em: "2025-01-02T14:30:00Z",
-        preco_cents: 15000,
+        preco_cents: 1250,
         origem: "Plataforma",
         oab_status: "verificado",
       },
@@ -87,7 +87,7 @@ const initializeData = () => {
         resumo: "Preciso de orientação sobre processo de divórcio e divisão de bens. Temos dois filhos menores.",
         status: "novo",
         criado_em: "2025-01-03T10:00:00Z",
-        preco_cents: 20000,
+        preco_cents: 1100,
         origem: "Plataforma",
       },
     ];

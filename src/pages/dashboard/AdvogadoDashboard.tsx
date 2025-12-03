@@ -60,7 +60,23 @@ const AdvogadoDashboard = () => {
   const handleAtender = (caso: Caso) => {
     if (!user) return;
     
-    if (window.confirm("Tem certeza que deseja atender este caso?")) {
+    const custoLCoin = caso.preco_cents / 100;
+    const saldoAtual = user.saldo_lxc || 0;
+    
+    if (saldoAtual < custoLCoin) {
+      toast({
+        title: "Saldo insuficiente",
+        description: `Você precisa de ${custoLCoin.toFixed(2)} L-COIN para aceitar este caso. Saldo atual: ${saldoAtual.toFixed(2)} L-COIN`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (window.confirm(`Aceitar este caso custará ${custoLCoin.toFixed(2)} L-COIN. Deseja continuar?`)) {
+      // Deduct L-COIN from wallet
+      const novoSaldo = saldoAtual - custoLCoin;
+      updateUser({ saldo_lxc: novoSaldo });
+      
       Storage.updateCaso(caso.id, {
         advogado_id: user.id,
         advogado_nome: user.nome,
@@ -73,7 +89,7 @@ const AdvogadoDashboard = () => {
       
       toast({
         title: "Caso aceito!",
-        description: "Veja na aba 'Meus Casos'.",
+        description: `${custoLCoin.toFixed(2)} L-COIN debitados. Saldo: ${novoSaldo.toFixed(2)} L-COIN`,
       });
     }
   };
@@ -159,7 +175,7 @@ const AdvogadoDashboard = () => {
             {/* Wallet */}
             <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full">
               <Wallet className="w-4 h-4 text-primary" />
-              <span className="font-medium text-primary">{user?.saldo_lxc?.toFixed(2) || "0.00"} LXC</span>
+              <span className="font-medium text-primary">{user?.saldo_lxc?.toFixed(2) || "0.00"} L-COIN</span>
             </div>
 
             <span className="text-foreground hidden md:block">{user?.nome}</span>
@@ -207,7 +223,7 @@ const AdvogadoDashboard = () => {
                           {caso.area_juridica}
                         </span>
                         <span className="badge-area bg-primary/10 text-primary">
-                          {(caso.preco_cents / 100).toFixed(0)} LXC
+                          {(caso.preco_cents / 100).toFixed(2)} L-COIN
                         </span>
                       </div>
                       <span className="text-xs text-muted-foreground">

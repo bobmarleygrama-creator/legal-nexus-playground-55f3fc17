@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Scale, LogOut, Wallet, Users, DollarSign, TrendingUp, 
-  MessageCircle, Mail, CheckCircle, AlertCircle, X
+  MessageCircle, Mail, CheckCircle, AlertCircle, X, ArrowDownLeft, ArrowUpRight, History
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { Storage } from "@/utils/storage";
-import { Caso } from "@/types";
+import { Caso, LCoinTransaction } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
 const ESTADOS_OAB = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
@@ -28,6 +28,8 @@ const AdvogadoDashboard = () => {
   const [meusCasos, setMeusCasos] = useState<Caso[]>([]);
   const [showOabModal, setShowOabModal] = useState(false);
   const [showLCoinModal, setShowLCoinModal] = useState(false);
+  const [lcoinTab, setLcoinTab] = useState("pacotes");
+  const [transactions, setTransactions] = useState<LCoinTransaction[]>([]);
   const [oabNumero, setOabNumero] = useState(user?.oab_numero || "");
   const [oabEstado, setOabEstado] = useState(user?.oab_estado || "SP");
   const [oabVerified, setOabVerified] = useState(false);
@@ -45,12 +47,18 @@ const AdvogadoDashboard = () => {
       return;
     }
     loadCasos();
+    loadTransactions();
   }, [user, navigate]);
 
   const loadCasos = () => {
     if (!user) return;
     setCasosNovos(Storage.getCasosNovos());
     setMeusCasos(Storage.getCasosByAdvogadoId(user.id));
+  };
+
+  const loadTransactions = () => {
+    if (!user) return;
+    setTransactions(Storage.getTransactions(user.id));
   };
 
   const formatDate = (dateStr: string) => {
@@ -84,6 +92,16 @@ const AdvogadoDashboard = () => {
       const novoSaldo = saldoAtual - custoLCoin;
       updateUser({ saldo_lxc: novoSaldo });
       
+      // Record transaction
+      Storage.saveTransaction({
+        id: Storage.generateId(),
+        user_id: user.id,
+        tipo: "debito",
+        valor: custoLCoin,
+        descricao: `Caso aceito: ${caso.area_juridica} - ${caso.cliente_nome}`,
+        criado_em: new Date().toISOString(),
+      });
+      
       Storage.updateCaso(caso.id, {
         advogado_id: user.id,
         advogado_nome: user.nome,
@@ -92,6 +110,7 @@ const AdvogadoDashboard = () => {
       });
       
       loadCasos();
+      loadTransactions();
       setActiveTab("meus");
       
       toast({
@@ -445,46 +464,103 @@ const AdvogadoDashboard = () => {
           <DialogHeader>
             <DialogTitle className="text-xl font-heading flex items-center gap-2">
               <Wallet className="w-5 h-5 text-primary" />
-              Recarregar L-COIN
+              Carteira L-COIN
             </DialogTitle>
             <p className="text-sm text-muted-foreground">
               Saldo atual: <span className="font-semibold text-primary">{user?.saldo_lxc?.toFixed(2) || "0.00"} L-COIN</span>
             </p>
           </DialogHeader>
 
-          <div className="space-y-3 py-4">
-            {LCOIN_PACKAGES.map((pkg) => (
-              <motion.button
-                key={pkg.id}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => {
-                  toast({
-                    title: "Redirecionando para pagamento...",
-                    description: `Pacote: ${pkg.label} por ${pkg.priceLabel}`,
-                  });
-                  // Payment integration will be configured later
-                }}
-                className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between ${
-                  pkg.popular 
-                    ? "border-primary bg-primary/5 hover:bg-primary/10" 
-                    : "border-border hover:border-primary/50 hover:bg-muted/50"
-                }`}
-              >
-                <div className="flex flex-col items-start">
-                  <span className="font-semibold text-foreground">{pkg.label}</span>
-                  {pkg.popular && (
-                    <span className="text-xs text-primary font-medium">Mais popular</span>
-                  )}
-                </div>
-                <span className="text-lg font-bold text-primary">{pkg.priceLabel}</span>
-              </motion.button>
-            ))}
-          </div>
+          <Tabs value={lcoinTab} onValueChange={setLcoinTab} className="w-full">
+            <TabsList className="w-full grid grid-cols-2">
+              <TabsTrigger value="pacotes">Recarregar</TabsTrigger>
+              <TabsTrigger value="historico" className="flex items-center gap-1">
+                <History className="w-3.5 h-3.5" />
+                Histórico
+              </TabsTrigger>
+            </TabsList>
 
-          <p className="text-xs text-center text-muted-foreground">
-            Pagamento seguro via PIX ou cartão de crédito
-          </p>
+            <TabsContent value="pacotes" className="mt-4">
+              <div className="space-y-3">
+                {LCOIN_PACKAGES.map((pkg) => (
+                  <motion.button
+                    key={pkg.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      toast({
+                        title: "Redirecionando para pagamento...",
+                        description: `Pacote: ${pkg.label} por ${pkg.priceLabel}`,
+                      });
+                    }}
+                    className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between ${
+                      pkg.popular 
+                        ? "border-primary bg-primary/5 hover:bg-primary/10" 
+                        : "border-border hover:border-primary/50 hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="flex flex-col items-start">
+                      <span className="font-semibold text-foreground">{pkg.label}</span>
+                      {pkg.popular && (
+                        <span className="text-xs text-primary font-medium">Mais popular</span>
+                      )}
+                    </div>
+                    <span className="text-lg font-bold text-primary">{pkg.priceLabel}</span>
+                  </motion.button>
+                ))}
+              </div>
+              <p className="text-xs text-center text-muted-foreground mt-4">
+                Pagamento seguro via PIX ou cartão de crédito
+              </p>
+            </TabsContent>
+
+            <TabsContent value="historico" className="mt-4">
+              {transactions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <History className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Nenhuma transação ainda</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {transactions.map((tx) => (
+                    <div 
+                      key={tx.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          tx.tipo === "compra" ? "bg-green-100" : "bg-red-100"
+                        }`}>
+                          {tx.tipo === "compra" ? (
+                            <ArrowDownLeft className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <ArrowUpRight className="w-4 h-4 text-red-600" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground line-clamp-1">{tx.descricao}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(tx.criado_em).toLocaleDateString("pt-BR", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "2-digit",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`font-semibold ${
+                        tx.tipo === "compra" ? "text-green-600" : "text-red-600"
+                      }`}>
+                        {tx.tipo === "compra" ? "+" : "-"}{tx.valor.toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </div>

@@ -27,10 +27,17 @@ const AdvogadoDashboard = () => {
   const [casosNovos, setCasosNovos] = useState<Caso[]>([]);
   const [meusCasos, setMeusCasos] = useState<Caso[]>([]);
   const [showOabModal, setShowOabModal] = useState(false);
+  const [showLCoinModal, setShowLCoinModal] = useState(false);
   const [oabNumero, setOabNumero] = useState(user?.oab_numero || "");
   const [oabEstado, setOabEstado] = useState(user?.oab_estado || "SP");
   const [oabVerified, setOabVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
+
+  const LCOIN_PACKAGES = [
+    { id: 1, coins: 50, price: 4900, label: "50 L-COIN", priceLabel: "R$ 49,00" },
+    { id: 2, coins: 100, price: 7900, label: "100 L-COIN", priceLabel: "R$ 79,00" },
+    { id: 3, coins: 200, price: 9900, label: "200 L-COIN", priceLabel: "R$ 99,00", popular: true },
+  ];
 
   useEffect(() => {
     if (!user || user.tipo !== "advogado") {
@@ -172,11 +179,14 @@ const AdvogadoDashboard = () => {
               </Button>
             )}
 
-            {/* Wallet */}
-            <div className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full">
+            {/* Wallet - Clickable */}
+            <button 
+              onClick={() => setShowLCoinModal(true)}
+              className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
+            >
               <Wallet className="w-4 h-4 text-primary" />
               <span className="font-medium text-primary">{user?.saldo_lxc?.toFixed(2) || "0.00"} L-COIN</span>
-            </div>
+            </button>
 
             <span className="text-foreground hidden md:block">{user?.nome}</span>
             
@@ -426,6 +436,55 @@ const AdvogadoDashboard = () => {
               <p className="text-muted-foreground">OAB {oabNumero}/{oabEstado} verificada com sucesso!</p>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* L-COIN Purchase Modal */}
+      <Dialog open={showLCoinModal} onOpenChange={setShowLCoinModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-heading flex items-center gap-2">
+              <Wallet className="w-5 h-5 text-primary" />
+              Recarregar L-COIN
+            </DialogTitle>
+            <p className="text-sm text-muted-foreground">
+              Saldo atual: <span className="font-semibold text-primary">{user?.saldo_lxc?.toFixed(2) || "0.00"} L-COIN</span>
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-3 py-4">
+            {LCOIN_PACKAGES.map((pkg) => (
+              <motion.button
+                key={pkg.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => {
+                  toast({
+                    title: "Redirecionando para pagamento...",
+                    description: `Pacote: ${pkg.label} por ${pkg.priceLabel}`,
+                  });
+                  // Payment integration will be configured later
+                }}
+                className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between ${
+                  pkg.popular 
+                    ? "border-primary bg-primary/5 hover:bg-primary/10" 
+                    : "border-border hover:border-primary/50 hover:bg-muted/50"
+                }`}
+              >
+                <div className="flex flex-col items-start">
+                  <span className="font-semibold text-foreground">{pkg.label}</span>
+                  {pkg.popular && (
+                    <span className="text-xs text-primary font-medium">Mais popular</span>
+                  )}
+                </div>
+                <span className="text-lg font-bold text-primary">{pkg.priceLabel}</span>
+              </motion.button>
+            ))}
+          </div>
+
+          <p className="text-xs text-center text-muted-foreground">
+            Pagamento seguro via PIX ou cartão de crédito
+          </p>
         </DialogContent>
       </Dialog>
     </div>

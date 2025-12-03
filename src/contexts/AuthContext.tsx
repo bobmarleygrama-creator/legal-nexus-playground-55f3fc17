@@ -76,6 +76,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       senha: form.senha,
       tipo: form.tipo,
       criado_em: new Date().toISOString(),
+      ...(form.tipo === "cliente" && {
+        whatsapp: form.whatsapp,
+      }),
       ...(form.tipo === "advogado" && {
         oab_status: "pendente" as const,
         saldo_lxc: 100,

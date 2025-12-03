@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Scale, Mail, Lock, User, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Scale, Mail, Lock, User, Loader2, CheckCircle2, XCircle, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ const Register = () => {
   const [searchParams] = useSearchParams();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
   const [senha, setSenha] = useState("");
   const [tipo, setTipo] = useState<"cliente" | "advogado">(
     (searchParams.get("tipo") as "cliente" | "advogado") || "cliente"
@@ -24,11 +25,20 @@ const Register = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Format WhatsApp
+  const formatWhatsapp = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  };
+
   // Validations
   const isNomeValid = nome.length >= 3;
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const isWhatsappValid = whatsapp.replace(/\D/g, "").length >= 10;
   const isSenhaValid = senha.length >= 8 && /[a-zA-Z]/.test(senha) && /[0-9]/.test(senha);
-  const isFormValid = isNomeValid && isEmailValid && isSenhaValid;
+  const isFormValid = isNomeValid && isEmailValid && isSenhaValid && (tipo === "advogado" || isWhatsappValid);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +47,7 @@ const Register = () => {
     setError("");
     setLoading(true);
 
-    const result = await register({ nome, email, senha, tipo });
+    const result = await register({ nome, email, senha, tipo, whatsapp: tipo === "cliente" ? whatsapp : undefined });
 
     if (result.ok) {
       toast({
@@ -141,6 +151,26 @@ const Register = () => {
               </div>
               {email && <ValidationIndicator isValid={isEmailValid} text="Email válido" />}
             </div>
+
+            {tipo === "cliente" && (
+              <div className="space-y-2">
+                <Label htmlFor="whatsapp">WhatsApp</Label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="whatsapp"
+                    type="tel"
+                    placeholder="(11) 99999-9999"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(formatWhatsapp(e.target.value))}
+                    className="pl-10"
+                    maxLength={15}
+                    required
+                  />
+                </div>
+                {whatsapp && <ValidationIndicator isValid={isWhatsappValid} text="WhatsApp válido (mínimo 10 dígitos)" />}
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="senha">Senha</Label>

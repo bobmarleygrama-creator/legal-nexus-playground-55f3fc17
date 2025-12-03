@@ -89,6 +89,7 @@ const ClienteDashboard = () => {
       cliente_id: user.id,
       cliente_nome: user.nome,
       cliente_email: user.email,
+      cliente_whatsapp: user.whatsapp,
       area_juridica: areaJuridica,
       resumo: resumo.trim(),
       status: "novo",

@@ -1,4 +1,4 @@
-import { User, Caso, Mensagem } from "@/types";
+import { User, Caso, Mensagem, LCoinTransaction } from "@/types";
 
 const KEYS = {
   USERS: "socialjuris_users",
@@ -6,6 +6,7 @@ const KEYS = {
   TOKEN: "socialjuris_token",
   CASOS: "socialjuris_casos",
   MENSAGENS: "socialjuris_mensagens",
+  TRANSACTIONS: "socialjuris_transactions",
 };
 
 // Utility
@@ -229,6 +230,22 @@ export const Storage = {
     const all: Mensagem[] = data ? JSON.parse(data) : [];
     all.push(mensagem);
     localStorage.setItem(KEYS.MENSAGENS, JSON.stringify(all));
+  },
+
+  // Transactions
+  getTransactions: (userId: string): LCoinTransaction[] => {
+    const data = localStorage.getItem(KEYS.TRANSACTIONS);
+    const all: LCoinTransaction[] = data ? JSON.parse(data) : [];
+    return all
+      .filter((t) => t.user_id === userId)
+      .sort((a, b) => new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime());
+  },
+
+  saveTransaction: (transaction: LCoinTransaction): void => {
+    const data = localStorage.getItem(KEYS.TRANSACTIONS);
+    const all: LCoinTransaction[] = data ? JSON.parse(data) : [];
+    all.push(transaction);
+    localStorage.setItem(KEYS.TRANSACTIONS, JSON.stringify(all));
   },
 
   // Helpers

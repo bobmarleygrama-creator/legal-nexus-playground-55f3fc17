@@ -65,3 +65,12 @@ export interface RegisterForm {
   tipo: "cliente" | "advogado";
   whatsapp?: string;
 }
+
+export interface LCoinTransaction {
+  id: string;
+  user_id: string;
+  tipo: "compra" | "debito";
+  valor: number;
+  descricao: string;
+  criado_em: string;
+}

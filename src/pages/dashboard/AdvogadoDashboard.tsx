@@ -320,12 +320,24 @@ const AdvogadoDashboard = () => {
                       <div className="bg-muted/50 p-3 rounded-lg mb-3">
                         <p className="text-sm text-muted-foreground">{caso.resumo}</p>
                       </div>
-                      <a 
-                        href={`mailto:${caso.cliente_email}`} 
-                        className="text-sm text-primary hover:underline"
-                      >
-                        {caso.cliente_email}
-                      </a>
+                      <div className="flex flex-col gap-1">
+                        <a 
+                          href={`mailto:${caso.cliente_email}`} 
+                          className="text-sm text-primary hover:underline"
+                        >
+                          {caso.cliente_email}
+                        </a>
+                        {caso.cliente_whatsapp && (
+                          <a 
+                            href={`https://wa.me/55${caso.cliente_whatsapp.replace(/\D/g, "")}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-green-600 hover:underline flex items-center gap-1"
+                          >
+                            📱 {caso.cliente_whatsapp}
+                          </a>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex flex-col items-center justify-center gap-3 min-w-[150px]">

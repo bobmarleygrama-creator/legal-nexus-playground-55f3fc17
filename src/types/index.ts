@@ -4,6 +4,7 @@ export interface User {
   email: string;
   senha: string;
   tipo: "cliente" | "advogado" | "admin";
+  whatsapp?: string;
   origem?: string;
   oab_numero?: string;
   oab_estado?: string;
@@ -17,6 +18,7 @@ export interface Caso {
   cliente_id: string;
   cliente_nome: string;
   cliente_email: string;
+  cliente_whatsapp?: string;
   advogado_id?: string;
   advogado_nome?: string;
   area_juridica: AreaJuridica;
@@ -61,4 +63,5 @@ export interface RegisterForm {
   email: string;
   senha: string;
   tipo: "cliente" | "advogado";
+  whatsapp?: string;
 }

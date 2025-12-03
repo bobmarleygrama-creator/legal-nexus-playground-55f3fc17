@@ -22,6 +22,7 @@ const initializeData = () => {
         email: "joao@email.com",
         senha: "Senha123",
         tipo: "cliente",
+        whatsapp: "(11) 99999-1234",
         criado_em: "2025-01-01T10:00:00Z",
       },
       {
@@ -68,6 +69,7 @@ const initializeData = () => {
         cliente_id: "user-001",
         cliente_nome: "João Silva",
         cliente_email: "joao@email.com",
+        cliente_whatsapp: "(11) 99999-1234",
         advogado_id: "user-002",
         advogado_nome: "Dr. Maria Santos",
         area_juridica: "Trabalhista",
@@ -83,6 +85,7 @@ const initializeData = () => {
         cliente_id: "user-001",
         cliente_nome: "João Silva",
         cliente_email: "joao@email.com",
+        cliente_whatsapp: "(11) 99999-1234",
         area_juridica: "Família",
         resumo: "Preciso de orientação sobre processo de divórcio e divisão de bens. Temos dois filhos menores.",
         status: "novo",

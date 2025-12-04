@@ -51,16 +51,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, userEmail?: string, userMeta?: any) => {
     const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
     if (error) {
       console.error("Error fetching profile:", error);
       return null;
+    }
+
+    // Se o perfil não existe, criar automaticamente
+    if (!data && userEmail) {
+      const newProfile = {
+        id: userId,
+        nome: userMeta?.nome || userEmail.split('@')[0],
+        email: userEmail,
+        tipo: userMeta?.tipo || 'cliente',
+        whatsapp: userMeta?.whatsapp || null,
+        saldo_lcoin: 0,
+        premium_ativo: false,
+      };
+
+      const { data: createdProfile, error: createError } = await supabase
+        .from("profiles")
+        .insert([newProfile])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error("Error creating profile:", createError);
+        return null;
+      }
+
+      return createdProfile as Profile;
     }
 
     return data as Profile;
@@ -77,14 +103,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
 
         if (currentSession?.user) {
           // Use setTimeout to avoid potential race conditions
           setTimeout(async () => {
-            const profileData = await fetchProfile(currentSession.user.id);
+            const profileData = await fetchProfile(
+              currentSession.user.id,
+              currentSession.user.email,
+              currentSession.user.user_metadata
+            );
             setProfile(profileData);
             setIsLoading(false);
           }, 0);
@@ -101,7 +131,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(currentSession?.user ?? null);
       
       if (currentSession?.user) {
-        fetchProfile(currentSession.user.id).then((profileData) => {
+        fetchProfile(
+          currentSession.user.id,
+          currentSession.user.email,
+          currentSession.user.user_metadata
+        ).then((profileData) => {
           setProfile(profileData);
           setIsLoading(false);
         });

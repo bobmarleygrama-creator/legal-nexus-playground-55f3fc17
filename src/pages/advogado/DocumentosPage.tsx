@@ -408,14 +408,14 @@ ${doc.conteudo || ""}
                 <div>
                   <Label>Cliente (opcional)</Label>
                   <Select
-                    value={form.cliente_id || ""}
-                    onValueChange={(v) => setForm({ ...form, cliente_id: v || undefined })}
+                    value={form.cliente_id || "none"}
+                    onValueChange={(v) => setForm({ ...form, cliente_id: v === "none" ? undefined : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Vincular a um cliente" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {clientes.map(c => (
                         <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                       ))}
@@ -426,14 +426,14 @@ ${doc.conteudo || ""}
                 <div className="col-span-2">
                   <Label>Processo (opcional)</Label>
                   <Select
-                    value={form.processo_id || ""}
-                    onValueChange={(v) => setForm({ ...form, processo_id: v || undefined })}
+                    value={form.processo_id || "none"}
+                    onValueChange={(v) => setForm({ ...form, processo_id: v === "none" ? undefined : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Vincular a um processo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {processos.map(p => (
                         <SelectItem key={p.id} value={p.id}>
                           {p.numero_processo || p.tipo_acao}

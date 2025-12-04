@@ -14,6 +14,15 @@ import AdminDashboard from "./pages/dashboard/AdminDashboard";
 import Chat from "./pages/dashboard/Chat";
 import NotFound from "./pages/NotFound";
 
+// Advogado Premium Pages
+import { AdvogadoLayout } from "./components/advogado/AdvogadoLayout";
+import AdvogadoHome from "./pages/advogado/AdvogadoHome";
+import ClientesPage from "./pages/advogado/ClientesPage";
+import ProcessosPage from "./pages/advogado/ProcessosPage";
+import DocumentosPage from "./pages/advogado/DocumentosPage";
+import CalculosPage from "./pages/advogado/CalculosPage";
+import IAJuridicaPage from "./pages/advogado/IAJuridicaPage";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -32,6 +41,17 @@ const App = () => {
               <Route path="/dashboard/advogado" element={<AdvogadoDashboard />} />
               <Route path="/dashboard/admin" element={<AdminDashboard />} />
               <Route path="/dashboard/chat/:casoId" element={<Chat />} />
+              
+              {/* Advogado Premium Routes with Sidebar */}
+              <Route path="/dashboard/advogado" element={<AdvogadoLayout />}>
+                <Route path="home" element={<AdvogadoHome />} />
+                <Route path="clientes" element={<ClientesPage />} />
+                <Route path="processos" element={<ProcessosPage />} />
+                <Route path="documentos" element={<DocumentosPage />} />
+                <Route path="calculos" element={<CalculosPage />} />
+                <Route path="ia" element={<IAJuridicaPage />} />
+              </Route>
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

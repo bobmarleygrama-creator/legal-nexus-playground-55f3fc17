@@ -139,10 +139,10 @@ export default function CalculosPage() {
       .from("legal_calculations")
       .select("*")
       .eq("advogado_id", user.id)
-      .order("created_at", { ascending: false }) as any
+      .order("created_at", { ascending: false })
       .limit(20);
 
-    setCalculos(data || []);
+    setCalculos((data as Calculo[]) || []);
     setLoading(false);
   };
 

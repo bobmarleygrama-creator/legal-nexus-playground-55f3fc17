@@ -36,56 +36,30 @@ interface Calculo {
   created_at?: string;
 }
 
-// Tipos de cálculos jurídicos
-const tiposCalculo = [
-  {
-    categoria: "Trabalhista",
-    calculos: [
-      { id: "verbas_rescisorias", nome: "Verbas Rescisórias", descricao: "FGTS, aviso prévio, 13º, férias" },
-      { id: "horas_extras", nome: "Horas Extras", descricao: "Adicional de 50% ou 100%" },
-      { id: "adicional_noturno", nome: "Adicional Noturno", descricao: "20% sobre hora normal" },
-      { id: "insalubridade", nome: "Adicional de Insalubridade", descricao: "10%, 20% ou 40% do salário mínimo" },
-      { id: "periculosidade", nome: "Adicional de Periculosidade", descricao: "30% sobre salário base" },
-      { id: "dsr", nome: "Reflexo DSR", descricao: "Descanso Semanal Remunerado" },
-    ]
-  },
-  {
-    categoria: "Cível",
-    calculos: [
-      { id: "correcao_monetaria", nome: "Correção Monetária", descricao: "IPCA, INPC, IGP-M" },
-      { id: "juros_mora", nome: "Juros de Mora", descricao: "1% ao mês ou taxa SELIC" },
-      { id: "atualizacao_divida", nome: "Atualização de Dívida", descricao: "Principal + juros + correção" },
-      { id: "honorarios_sucumbencia", nome: "Honorários de Sucumbência", descricao: "10% a 20% do valor da causa" },
-      { id: "custas_processuais", nome: "Custas Processuais", descricao: "Taxas judiciárias" },
-    ]
-  },
-  {
-    categoria: "Família",
-    calculos: [
-      { id: "pensao_alimenticia", nome: "Pensão Alimentícia", descricao: "Cálculo sobre rendimentos" },
-      { id: "partilha_bens", nome: "Partilha de Bens", descricao: "Divisão do patrimônio" },
-      { id: "alimentos_gravídicos", nome: "Alimentos Gravídicos", descricao: "Durante a gravidez" },
-    ]
-  },
-  {
-    categoria: "Previdenciário",
-    calculos: [
-      { id: "rmi", nome: "RMI - Renda Mensal Inicial", descricao: "Cálculo do benefício" },
-      { id: "tempo_contribuicao", nome: "Tempo de Contribuição", descricao: "Anos, meses e dias" },
-      { id: "fator_previdenciario", nome: "Fator Previdenciário", descricao: "Coeficiente do benefício" },
-      { id: "revisao_beneficio", nome: "Revisão de Benefício", descricao: "Diferenças devidas" },
-    ]
-  },
-  {
-    categoria: "Tributário",
-    calculos: [
-      { id: "icms", nome: "ICMS", descricao: "Imposto sobre circulação" },
-      { id: "iss", nome: "ISS", descricao: "Imposto sobre serviços" },
-      { id: "irpf", nome: "IRPF", descricao: "Imposto de renda pessoa física" },
-      { id: "multa_fiscal", nome: "Multa Fiscal", descricao: "Penalidades tributárias" },
-    ]
-  },
-];
+// Tipos de cálculos jurídicos - FUNCIONAIS
+const tiposCalculo = {
+  trabalhista: [
+    { id: "verbas_rescisorias", nome: "Verbas Rescisórias" },
+    { id: "horas_extras", nome: "Horas Extras" },
+    { id: "adicional_noturno", nome: "Adicional Noturno" },
+    { id: "insalubridade", nome: "Insalubridade" },
+    { id: "periculosidade", nome: "Periculosidade" },
+  ],
+  civel: [
+    { id: "correcao_monetaria", nome: "Correção Monetária" },
+    { id: "juros_mora", nome: "Juros de Mora" },
+    { id: "honorarios", nome: "Honorários Advocatícios" },
+  ],
+  familia: [
+    { id: "pensao_alimenticia", nome: "Pensão Alimentícia" },
+    { id: "partilha_bens", nome: "Partilha de Bens" },
+  ],
+  previdenciario: [
+    { id: "tempo_contribuicao", nome: "Tempo de Contribuição" },
+  ],
+};
+
+const totalCalculos = Object.values(tiposCalculo).flat().length;
 
 export default function CalculosPage() {
   const { user } = useAuth();
@@ -111,6 +85,22 @@ export default function CalculosPage() {
     percentual: "50",
   });
 
+  const [noturnoForm, setNoturnoForm] = useState({
+    salarioBase: "",
+    horasNoturnas: "",
+  });
+
+  const [insalubridadeForm, setInsalubridadeForm] = useState({
+    salarioMinimo: "1412",
+    grau: "20",
+    meses: "12",
+  });
+
+  const [periculosidadeForm, setPericulosidadeForm] = useState({
+    salarioBase: "",
+    meses: "12",
+  });
+
   const [correcaoForm, setCorrecaoForm] = useState({
     valorOriginal: "",
     dataInicial: "",
@@ -119,10 +109,25 @@ export default function CalculosPage() {
     juros: "1",
   });
 
+  const [honorariosForm, setHonorariosForm] = useState({
+    valorCausa: "",
+    percentual: "15",
+  });
+
   const [pensaoForm, setPensaoForm] = useState({
     rendimentoMensal: "",
     percentual: "30",
     qtdFilhos: "1",
+  });
+
+  const [partilhaForm, setPartilhaForm] = useState({
+    valorTotal: "",
+    percentual: "50",
+  });
+
+  const [tempoContribForm, setTempoContribForm] = useState({
+    dataInicio: "",
+    dataFim: "",
   });
 
   const [resultado, setResultado] = useState<Record<string, any> | null>(null);
@@ -279,6 +284,123 @@ export default function CalculosPage() {
     return res;
   };
 
+  const calcularNoturno = () => {
+    const salario = parseFloat(noturnoForm.salarioBase) || 0;
+    const horasNoturnas = parseFloat(noturnoForm.horasNoturnas) || 0;
+    const valorHora = salario / 220;
+    const adicionalNoturno = valorHora * 0.20 * horasNoturnas;
+    const horaReduzida = horasNoturnas * (52.5 / 60); // Hora noturna = 52:30
+    const diferencaHoras = horasNoturnas - horaReduzida;
+    const valorDiferenca = diferencaHoras * valorHora * 1.20;
+    
+    const res = {
+      valorHoraNormal: valorHora,
+      adicional20Percent: adicionalNoturno,
+      horasReduzidas: horaReduzida,
+      diferencaHoras,
+      valorDiferenca,
+      total: adicionalNoturno + valorDiferenca,
+    };
+    setResultado(res);
+    return res;
+  };
+
+  const calcularInsalubridade = () => {
+    const salarioMinimo = parseFloat(insalubridadeForm.salarioMinimo) || 1412;
+    const grau = parseFloat(insalubridadeForm.grau) || 20;
+    const meses = parseInt(insalubridadeForm.meses) || 12;
+    const adicionalMensal = salarioMinimo * (grau / 100);
+    const totalPeriodo = adicionalMensal * meses;
+    const reflexo13 = adicionalMensal;
+    const reflexoFerias = adicionalMensal + (adicionalMensal / 3);
+    
+    const res = {
+      baseCalculo: salarioMinimo,
+      percentualGrau: grau,
+      adicionalMensal,
+      totalPeriodo,
+      reflexo13,
+      reflexoFerias,
+      total: totalPeriodo + reflexo13 + reflexoFerias,
+    };
+    setResultado(res);
+    return res;
+  };
+
+  const calcularPericulosidade = () => {
+    const salario = parseFloat(periculosidadeForm.salarioBase) || 0;
+    const meses = parseInt(periculosidadeForm.meses) || 12;
+    const adicionalMensal = salario * 0.30;
+    const totalPeriodo = adicionalMensal * meses;
+    const reflexo13 = adicionalMensal;
+    const reflexoFerias = adicionalMensal + (adicionalMensal / 3);
+    
+    const res = {
+      salarioBase: salario,
+      adicional30Percent: adicionalMensal,
+      totalPeriodo,
+      reflexo13,
+      reflexoFerias,
+      total: totalPeriodo + reflexo13 + reflexoFerias,
+    };
+    setResultado(res);
+    return res;
+  };
+
+  const calcularHonorarios = () => {
+    const valorCausa = parseFloat(honorariosForm.valorCausa) || 0;
+    const percentual = parseFloat(honorariosForm.percentual) || 15;
+    const honorarios = valorCausa * (percentual / 100);
+    
+    const res = {
+      valorCausa,
+      percentual,
+      honorariosCalculados: honorarios,
+      minimo10Percent: valorCausa * 0.10,
+      maximo20Percent: valorCausa * 0.20,
+      total: honorarios,
+    };
+    setResultado(res);
+    return res;
+  };
+
+  const calcularPartilha = () => {
+    const valorTotal = parseFloat(partilhaForm.valorTotal) || 0;
+    const percentual = parseFloat(partilhaForm.percentual) || 50;
+    const meacao = valorTotal * (percentual / 100);
+    
+    const res = {
+      patrimonioTotal: valorTotal,
+      percentualMeacao: percentual,
+      valorMeacao: meacao,
+      valorOutraParte: valorTotal - meacao,
+      total: meacao,
+    };
+    setResultado(res);
+    return res;
+  };
+
+  const calcularTempoContribuicao = () => {
+    const dataInicio = new Date(tempoContribForm.dataInicio);
+    const dataFim = new Date(tempoContribForm.dataFim);
+    const diffTime = Math.abs(dataFim.getTime() - dataInicio.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const anos = Math.floor(diffDays / 365);
+    const meses = Math.floor((diffDays % 365) / 30);
+    const dias = diffDays % 30;
+    
+    const res = {
+      totalDias: diffDays,
+      anos,
+      meses,
+      dias,
+      tempoFormatado: `${anos} anos, ${meses} meses e ${dias} dias`,
+      total: diffDays,
+    };
+    setResultado(res);
+    return res;
+  };
+
   const salvarCalculo = async (titulo: string, tipo: string, dados: any, res: any) => {
     if (!user) return;
 
@@ -349,7 +471,7 @@ export default function CalculosPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-foreground">
-              {tiposCalculo.reduce((acc, c) => acc + c.calculos.length, 0)}
+              {totalCalculos}
             </p>
             <p className="text-sm text-muted-foreground">Tipos Disponíveis</p>
           </div>
@@ -512,6 +634,107 @@ export default function CalculosPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Adicional Noturno */}
+            <div className="card-elevated p-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-primary" />
+                Adicional Noturno
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Salário Base</Label>
+                  <Input
+                    type="number"
+                    value={noturnoForm.salarioBase}
+                    onChange={(e) => setNoturnoForm({ ...noturnoForm, salarioBase: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label>Horas Noturnas (22h-5h)</Label>
+                  <Input
+                    type="number"
+                    value={noturnoForm.horasNoturnas}
+                    onChange={(e) => setNoturnoForm({ ...noturnoForm, horasNoturnas: e.target.value })}
+                    placeholder="0"
+                  />
+                </div>
+                <Button onClick={calcularNoturno} className="w-full">Calcular</Button>
+              </div>
+            </div>
+
+            {/* Insalubridade */}
+            <div className="card-elevated p-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+                Adicional de Insalubridade
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Salário Mínimo (Base)</Label>
+                  <Input
+                    type="number"
+                    value={insalubridadeForm.salarioMinimo}
+                    onChange={(e) => setInsalubridadeForm({ ...insalubridadeForm, salarioMinimo: e.target.value })}
+                    placeholder="1412"
+                  />
+                </div>
+                <div>
+                  <Label>Grau de Insalubridade</Label>
+                  <Select
+                    value={insalubridadeForm.grau}
+                    onValueChange={(v) => setInsalubridadeForm({ ...insalubridadeForm, grau: v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10% - Mínimo</SelectItem>
+                      <SelectItem value="20">20% - Médio</SelectItem>
+                      <SelectItem value="40">40% - Máximo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Meses de Exposição</Label>
+                  <Input
+                    type="number"
+                    value={insalubridadeForm.meses}
+                    onChange={(e) => setInsalubridadeForm({ ...insalubridadeForm, meses: e.target.value })}
+                    placeholder="12"
+                  />
+                </div>
+                <Button onClick={calcularInsalubridade} className="w-full">Calcular</Button>
+              </div>
+            </div>
+
+            {/* Periculosidade */}
+            <div className="card-elevated p-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+                Adicional de Periculosidade
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Salário Base</Label>
+                  <Input
+                    type="number"
+                    value={periculosidadeForm.salarioBase}
+                    onChange={(e) => setPericulosidadeForm({ ...periculosidadeForm, salarioBase: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label>Meses de Exposição</Label>
+                  <Input
+                    type="number"
+                    value={periculosidadeForm.meses}
+                    onChange={(e) => setPericulosidadeForm({ ...periculosidadeForm, meses: e.target.value })}
+                    placeholder="12"
+                  />
+                </div>
+                <Button onClick={calcularPericulosidade} className="w-full">Calcular</Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -586,6 +809,40 @@ export default function CalculosPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Honorários Advocatícios */}
+            <div className="card-elevated p-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <Percent className="w-5 h-5 text-primary" />
+                Honorários Advocatícios
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Valor da Causa</Label>
+                  <Input
+                    type="number"
+                    value={honorariosForm.valorCausa}
+                    onChange={(e) => setHonorariosForm({ ...honorariosForm, valorCausa: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label>Percentual de Honorários</Label>
+                  <Select
+                    value={honorariosForm.percentual}
+                    onValueChange={(v) => setHonorariosForm({ ...honorariosForm, percentual: v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="10">10%</SelectItem>
+                      <SelectItem value="15">15%</SelectItem>
+                      <SelectItem value="20">20%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={calcularHonorarios} className="w-full">Calcular</Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -643,19 +900,71 @@ export default function CalculosPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Partilha de Bens */}
+            <div className="card-elevated p-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-primary" />
+                Partilha de Bens
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Valor Total do Patrimônio</Label>
+                  <Input
+                    type="number"
+                    value={partilhaForm.valorTotal}
+                    onChange={(e) => setPartilhaForm({ ...partilhaForm, valorTotal: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label>Percentual de Meação</Label>
+                  <Select
+                    value={partilhaForm.percentual}
+                    onValueChange={(v) => setPartilhaForm({ ...partilhaForm, percentual: v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="50">50% (Meação Padrão)</SelectItem>
+                      <SelectItem value="60">60%</SelectItem>
+                      <SelectItem value="70">70%</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button onClick={calcularPartilha} className="w-full">Calcular</Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
         {/* Previdenciário */}
         <TabsContent value="previdenciario" className="space-y-6">
-          <div className="card-elevated p-6 text-center">
-            <Calculator className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="font-semibold text-lg mb-2">Cálculos Previdenciários</h3>
-            <p className="text-muted-foreground mb-4">
-              Os cálculos previdenciários (RMI, tempo de contribuição, fator previdenciário) 
-              requerem integração com bases de dados oficiais do INSS.
-            </p>
-            <Badge variant="secondary">Em desenvolvimento</Badge>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="card-elevated p-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-primary" />
+                Tempo de Contribuição
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <Label>Data de Início</Label>
+                  <Input
+                    type="date"
+                    value={tempoContribForm.dataInicio}
+                    onChange={(e) => setTempoContribForm({ ...tempoContribForm, dataInicio: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Data Final</Label>
+                  <Input
+                    type="date"
+                    value={tempoContribForm.dataFim}
+                    onChange={(e) => setTempoContribForm({ ...tempoContribForm, dataFim: e.target.value })}
+                  />
+                </div>
+                <Button onClick={calcularTempoContribuicao} className="w-full">Calcular</Button>
+              </div>
+            </div>
           </div>
         </TabsContent>
       </Tabs>

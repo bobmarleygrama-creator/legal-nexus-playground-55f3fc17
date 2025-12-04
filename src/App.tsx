@@ -38,12 +38,12 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/dashboard/cliente" element={<ClienteDashboard />} />
-              <Route path="/dashboard/advogado" element={<AdvogadoDashboard />} />
               <Route path="/dashboard/admin" element={<AdminDashboard />} />
               <Route path="/dashboard/chat/:casoId" element={<Chat />} />
               
-              {/* Advogado Premium Routes with Sidebar */}
+              {/* Advogado Routes with Sidebar */}
               <Route path="/dashboard/advogado" element={<AdvogadoLayout />}>
+                <Route index element={<AdvogadoHome />} />
                 <Route path="home" element={<AdvogadoHome />} />
                 <Route path="clientes" element={<ClientesPage />} />
                 <Route path="processos" element={<ProcessosPage />} />

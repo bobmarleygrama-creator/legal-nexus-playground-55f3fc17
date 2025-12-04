@@ -232,12 +232,22 @@ export default function DocumentosPage() {
         toast({ title: "Documento atualizado!" });
       }
     } else {
+      const docData = {
+        titulo: form.titulo,
+        tipo_documento: form.tipo_documento,
+        conteudo: form.conteudo || null,
+        cliente_id: form.cliente_id || null,
+        processo_id: form.processo_id || null,
+        advogado_id: user.id,
+      };
+
       const { error } = await supabase
         .from("legal_documents")
-        .insert([{ ...form, advogado_id: user.id }] as any);
+        .insert([docData]);
 
       if (error) {
-        toast({ title: "Erro ao criar documento", variant: "destructive" });
+        console.error("Erro ao criar documento:", error);
+        toast({ title: "Erro ao criar documento", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Documento criado!" });
       }

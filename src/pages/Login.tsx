@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Scale, Mail, Lock, Loader2 } from "lucide-react";
@@ -14,9 +14,32 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
-  const { login } = useAuth();
+  const { login, profile, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && profile) {
+      redirectByUserType(profile.tipo);
+    }
+  }, [profile, authLoading]);
+
+  const redirectByUserType = (tipo: string) => {
+    switch (tipo) {
+      case "cliente":
+        navigate("/dashboard/cliente");
+        break;
+      case "advogado":
+        navigate("/dashboard/advogado");
+        break;
+      case "admin":
+        navigate("/dashboard/admin");
+        break;
+      default:
+        navigate("/");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,25 +53,7 @@ const Login = () => {
         title: "Bem-vindo!",
         description: "Login realizado com sucesso.",
       });
-
-      // Get user type from storage to redirect
-      const userStr = localStorage.getItem("socialjuris_user");
-      if (userStr) {
-        const user = JSON.parse(userStr);
-        switch (user.tipo) {
-          case "cliente":
-            navigate("/dashboard/cliente");
-            break;
-          case "advogado":
-            navigate("/dashboard/advogado");
-            break;
-          case "admin":
-            navigate("/dashboard/admin");
-            break;
-          default:
-            navigate("/");
-        }
-      }
+      // Navigation will happen via useEffect when profile loads
     } else {
       setError(result.error || "Erro ao fazer login");
     }

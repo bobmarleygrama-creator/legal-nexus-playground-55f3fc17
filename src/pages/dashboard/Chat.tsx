@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Chat = () => {
   const { casoId } = useParams<{ casoId: string }>();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -55,13 +55,13 @@ const Chat = () => {
   };
 
   const handleSend = () => {
-    if (!newMessage.trim() || !user || !casoId) return;
+    if (!newMessage.trim() || !user || !profile || !casoId) return;
 
     const msg: Mensagem = {
       id: Storage.generateId(),
       caso_id: casoId,
       remetente_id: user.id,
-      remetente_nome: user.nome,
+      remetente_nome: profile.nome,
       texto: newMessage.trim(),
       criado_em: new Date().toISOString(),
       tipo: "texto",
@@ -74,7 +74,7 @@ const Chat = () => {
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !user || !casoId) return;
+    if (!file || !user || !profile || !casoId) return;
 
     const isImage = file.type.startsWith("image/");
     const blobUrl = URL.createObjectURL(file);
@@ -83,7 +83,7 @@ const Chat = () => {
       id: Storage.generateId(),
       caso_id: casoId,
       remetente_id: user.id,
-      remetente_nome: user.nome,
+      remetente_nome: profile.nome,
       texto: isImage ? `🖼️ Imagem: ${blobUrl}` : `📎 Arquivo: ${file.name}|${blobUrl}`,
       criado_em: new Date().toISOString(),
       tipo: isImage ? "imagem" : "arquivo",
@@ -98,14 +98,16 @@ const Chat = () => {
   };
 
   const handleVideoCall = () => {
+    if (!user || !profile) return;
+    
     const roomId = `socialjuris-${casoId}`;
     const jitsiUrl = `https://meet.jit.si/${roomId}`;
     
     const msg: Mensagem = {
       id: Storage.generateId(),
       caso_id: casoId!,
-      remetente_id: user!.id,
-      remetente_nome: user!.nome,
+      remetente_id: user.id,
+      remetente_nome: profile.nome,
       texto: `🎥 Sala de vídeo criada: ${jitsiUrl}`,
       criado_em: new Date().toISOString(),
       tipo: "video",
@@ -219,7 +221,7 @@ const Chat = () => {
             Vídeo
           </Button>
           
-          {user?.tipo === "cliente" && caso.status !== "concluido" && (
+          {profile?.tipo === "cliente" && caso.status !== "concluido" && (
             <Button variant="outline" size="sm" className="text-green-600 border-green-600" onClick={() => setShowRatingModal(true)}>
               <CheckCircle className="w-4 h-4 mr-1" />
               Concluir

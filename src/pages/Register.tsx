@@ -21,9 +21,26 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const { register } = useAuth();
+  const { register, profile, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && profile) {
+      switch (profile.tipo) {
+        case "cliente":
+          navigate("/dashboard/cliente");
+          break;
+        case "advogado":
+          navigate("/dashboard/advogado");
+          break;
+        case "admin":
+          navigate("/dashboard/admin");
+          break;
+      }
+    }
+  }, [profile, authLoading, navigate]);
 
   // Format WhatsApp
   const formatWhatsapp = (value: string) => {
@@ -52,7 +69,7 @@ const Register = () => {
     if (result.ok) {
       toast({
         title: "Cadastro realizado!",
-        description: "Agora faça login para continuar.",
+        description: "Você já pode fazer login.",
       });
       navigate("/login");
     } else {

@@ -9,7 +9,7 @@ import { User, Caso } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -18,13 +18,13 @@ const AdminDashboard = () => {
   const [pendingLawyers, setPendingLawyers] = useState<User[]>([]);
 
   useEffect(() => {
-    if (!user || user.tipo !== "admin") {
+    if (!user || !profile || profile.tipo !== "admin") {
       alert("Acesso negado. Você não tem permissão para acessar esta página.");
       navigate("/login");
       return;
     }
     loadData();
-  }, [user, navigate]);
+  }, [user, profile, navigate]);
 
   const loadData = () => {
     const allUsers = Storage.getUsers();
@@ -49,8 +49,8 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 

@@ -19,7 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 const ESTADOS_OAB = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
 
 const AdvogadoDashboard = () => {
-  const { user, updateUser, logout } = useAuth();
+  const { user, profile, updateProfile, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -30,8 +30,8 @@ const AdvogadoDashboard = () => {
   const [showLCoinModal, setShowLCoinModal] = useState(false);
   const [lcoinTab, setLcoinTab] = useState("pacotes");
   const [transactions, setTransactions] = useState<LCoinTransaction[]>([]);
-  const [oabNumero, setOabNumero] = useState(user?.oab_numero || "");
-  const [oabEstado, setOabEstado] = useState(user?.oab_estado || "SP");
+  const [oabNumero, setOabNumero] = useState(profile?.oab_numero || "");
+  const [oabEstado, setOabEstado] = useState("SP");
   const [oabVerified, setOabVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
 
@@ -42,13 +42,13 @@ const AdvogadoDashboard = () => {
   ];
 
   useEffect(() => {
-    if (!user || user.tipo !== "advogado") {
+    if (!user || !profile || profile.tipo !== "advogado") {
       navigate("/login");
       return;
     }
     loadCasos();
     loadTransactions();
-  }, [user, navigate]);
+  }, [user, profile, navigate]);
 
   const loadCasos = () => {
     if (!user) return;
@@ -72,11 +72,11 @@ const AdvogadoDashboard = () => {
     return `R$ ${(cents / 100).toFixed(2)}`;
   };
 
-  const handleAtender = (caso: Caso) => {
-    if (!user) return;
+  const handleAtender = async (caso: Caso) => {
+    if (!user || !profile) return;
     
     const custoLCoin = caso.preco_cents / 100;
-    const saldoAtual = user.saldo_lxc || 0;
+    const saldoAtual = profile.saldo_lcoin || 0;
     
     if (saldoAtual < custoLCoin) {
       toast({
@@ -90,7 +90,7 @@ const AdvogadoDashboard = () => {
     if (window.confirm(`Aceitar este caso custará ${custoLCoin.toFixed(2)} L-COIN. Deseja continuar?`)) {
       // Deduct L-COIN from wallet
       const novoSaldo = saldoAtual - custoLCoin;
-      updateUser({ saldo_lxc: novoSaldo });
+      await updateProfile({ saldo_lcoin: novoSaldo });
       
       // Record transaction
       Storage.saveTransaction({
@@ -104,9 +104,9 @@ const AdvogadoDashboard = () => {
       
       Storage.updateCaso(caso.id, {
         advogado_id: user.id,
-        advogado_nome: user.nome,
+        advogado_nome: profile.nome,
         status: "em_atendimento",
-        oab_status: user.oab_status,
+        oab_status: profile.oab_status as "pendente" | "verificado",
       });
       
       loadCasos();
@@ -120,17 +120,16 @@ const AdvogadoDashboard = () => {
     }
   };
 
-  const handleVerifyOab = () => {
+  const handleVerifyOab = async () => {
     setVerifying(true);
     
     // Simulate OAB verification
-    setTimeout(() => {
+    setTimeout(async () => {
       setVerifying(false);
       setOabVerified(true);
       
-      updateUser({
+      await updateProfile({
         oab_numero: oabNumero,
-        oab_estado: oabEstado,
         oab_status: "verificado",
       });
       
@@ -145,8 +144,8 @@ const AdvogadoDashboard = () => {
     }, 1500);
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
@@ -181,7 +180,7 @@ const AdvogadoDashboard = () => {
 
           <div className="flex items-center gap-4">
             {/* OAB Status */}
-            {user?.oab_status === "verificado" ? (
+            {profile?.oab_status === "verificado" ? (
               <span className="flex items-center gap-1.5 text-sm text-green-600 bg-green-100 px-3 py-1.5 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
                 ✓ Verificado
@@ -204,10 +203,10 @@ const AdvogadoDashboard = () => {
               className="flex items-center gap-2 bg-primary/10 px-3 py-1.5 rounded-full hover:bg-primary/20 transition-colors cursor-pointer"
             >
               <Wallet className="w-4 h-4 text-primary" />
-              <span className="font-medium text-primary">{user?.saldo_lxc?.toFixed(2) || "0.00"} L-COIN</span>
+              <span className="font-medium text-primary">{profile?.saldo_lcoin?.toFixed(2) || "0.00"} L-COIN</span>
             </button>
 
-            <span className="text-foreground hidden md:block">{user?.nome}</span>
+            <span className="text-foreground hidden md:block">{profile?.nome}</span>
             
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="w-4 h-4" />
@@ -407,7 +406,7 @@ const AdvogadoDashboard = () => {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label>Nome Completo</Label>
-                  <Input value={user?.nome || ""} disabled className="bg-muted" />
+                  <Input value={profile?.nome || ""} disabled className="bg-muted" />
                 </div>
 
                 <div className="space-y-2">
@@ -436,129 +435,115 @@ const AdvogadoDashboard = () => {
 
               <Button 
                 onClick={handleVerifyOab} 
-                disabled={!oabNumero || verifying}
                 className="w-full"
+                disabled={!oabNumero || verifying}
               >
-                {verifying ? "Verificando..." : "Validar OAB"}
+                {verifying ? "Verificando..." : "Consultar CNA"}
               </Button>
             </>
           ) : (
-            <div className="text-center py-8">
+            <div className="py-8 text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4"
+                className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4"
               >
                 <CheckCircle className="w-10 h-10 text-green-600" />
               </motion.div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">Cadastro Regular</h3>
-              <p className="text-muted-foreground">OAB {oabNumero}/{oabEstado} verificada com sucesso!</p>
+              <h3 className="text-xl font-semibold text-foreground mb-2">OAB Verificada!</h3>
+              <p className="text-muted-foreground">Cadastro regular junto à OAB/{oabEstado}</p>
             </div>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* L-COIN Purchase Modal */}
+      {/* L-COIN Modal */}
       <Dialog open={showLCoinModal} onOpenChange={setShowLCoinModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-xl font-heading flex items-center gap-2">
-              <Wallet className="w-5 h-5 text-primary" />
+              <Wallet className="w-6 h-6 text-primary" />
               Carteira L-COIN
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">
-              Saldo atual: <span className="font-semibold text-primary">{user?.saldo_lxc?.toFixed(2) || "0.00"} L-COIN</span>
-            </p>
           </DialogHeader>
 
-          <Tabs value={lcoinTab} onValueChange={setLcoinTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-2">
+          <div className="text-center py-4 border-b border-border">
+            <p className="text-sm text-muted-foreground mb-1">Saldo disponível</p>
+            <p className="text-4xl font-bold text-primary">{profile?.saldo_lcoin?.toFixed(2) || "0.00"}</p>
+            <p className="text-sm text-muted-foreground">L-COIN</p>
+          </div>
+
+          <Tabs value={lcoinTab} onValueChange={setLcoinTab} className="mt-4">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="pacotes">Recarregar</TabsTrigger>
-              <TabsTrigger value="historico" className="flex items-center gap-1">
-                <History className="w-3.5 h-3.5" />
-                Histórico
-              </TabsTrigger>
+              <TabsTrigger value="historico">Histórico</TabsTrigger>
             </TabsList>
 
             <TabsContent value="pacotes" className="mt-4">
-              <div className="space-y-3">
+              <div className="grid gap-3">
                 {LCOIN_PACKAGES.map((pkg) => (
-                  <motion.button
+                  <div
                     key={pkg.id}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary ${
+                      pkg.popular ? "border-primary bg-primary/5" : "border-border"
+                    }`}
                     onClick={() => {
                       toast({
-                        title: "Redirecionando para pagamento...",
-                        description: `Pacote: ${pkg.label} por ${pkg.priceLabel}`,
+                        title: "Pagamento",
+                        description: "Integração de pagamento em breve.",
                       });
                     }}
-                    className={`w-full p-4 rounded-xl border-2 transition-all flex items-center justify-between ${
-                      pkg.popular 
-                        ? "border-primary bg-primary/5 hover:bg-primary/10" 
-                        : "border-border hover:border-primary/50 hover:bg-muted/50"
-                    }`}
                   >
-                    <div className="flex flex-col items-start">
-                      <span className="font-semibold text-foreground">{pkg.label}</span>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-semibold text-foreground">{pkg.label}</p>
+                        <p className="text-2xl font-bold text-primary">{pkg.priceLabel}</p>
+                      </div>
                       {pkg.popular && (
-                        <span className="text-xs text-primary font-medium">Mais popular</span>
+                        <span className="px-3 py-1 bg-primary text-primary-foreground rounded-full text-xs font-medium">
+                          POPULAR
+                        </span>
                       )}
                     </div>
-                    <span className="text-lg font-bold text-primary">{pkg.priceLabel}</span>
-                  </motion.button>
+                  </div>
                 ))}
               </div>
-              <p className="text-xs text-center text-muted-foreground mt-4">
-                Pagamento seguro via PIX ou cartão de crédito
-              </p>
             </TabsContent>
 
             <TabsContent value="historico" className="mt-4">
-              {transactions.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <History className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                  <p className="text-sm">Nenhuma transação ainda</p>
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {transactions.map((tx) => (
-                    <div 
-                      key={tx.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          tx.tipo === "compra" ? "bg-green-100" : "bg-red-100"
-                        }`}>
-                          {tx.tipo === "compra" ? (
-                            <ArrowDownLeft className="w-4 h-4 text-green-600" />
-                          ) : (
-                            <ArrowUpRight className="w-4 h-4 text-red-600" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground line-clamp-1">{tx.descricao}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(tx.criado_em).toLocaleDateString("pt-BR", {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "2-digit",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        </div>
+              <div className="max-h-[300px] overflow-y-auto space-y-2">
+                {transactions.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <History className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                    <p>Sem transações</p>
+                  </div>
+                ) : (
+                  transactions.map((tx) => (
+                    <div key={tx.id} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                        tx.tipo === "compra" ? "bg-green-100" : "bg-red-100"
+                      }`}>
+                        {tx.tipo === "compra" ? (
+                          <ArrowDownLeft className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <ArrowUpRight className="w-4 h-4 text-red-600" />
+                        )}
                       </div>
-                      <span className={`font-semibold ${
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-foreground">{tx.descricao}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(tx.criado_em).toLocaleDateString("pt-BR")}
+                        </p>
+                      </div>
+                      <p className={`font-semibold ${
                         tx.tipo === "compra" ? "text-green-600" : "text-red-600"
                       }`}>
                         {tx.tipo === "compra" ? "+" : "-"}{tx.valor.toFixed(2)}
-                      </span>
+                      </p>
                     </div>
-                  ))}
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </DialogContent>

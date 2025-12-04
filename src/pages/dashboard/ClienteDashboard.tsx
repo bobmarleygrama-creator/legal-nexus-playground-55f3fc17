@@ -13,7 +13,7 @@ import { Caso, AreaJuridica, AREAS_JURIDICAS } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
 const ClienteDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -27,12 +27,12 @@ const ClienteDashboard = () => {
   const [notification, setNotification] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user || user.tipo !== "cliente") {
+    if (!user || !profile || profile.tipo !== "cliente") {
       navigate("/login");
       return;
     }
     loadCasos();
-  }, [user, navigate]);
+  }, [user, profile, navigate]);
 
   const loadCasos = () => {
     if (!user) return;
@@ -82,14 +82,14 @@ const ClienteDashboard = () => {
   };
 
   const confirmCase = () => {
-    if (!user) return;
+    if (!user || !profile) return;
 
     const newCaso: Caso = {
       id: Storage.generateId(),
       cliente_id: user.id,
-      cliente_nome: user.nome,
-      cliente_email: user.email,
-      cliente_whatsapp: user.whatsapp,
+      cliente_nome: profile.nome,
+      cliente_email: profile.email,
+      cliente_whatsapp: profile.whatsapp,
       area_juridica: areaJuridica,
       resumo: resumo.trim(),
       status: "novo",
@@ -140,8 +140,8 @@ const ClienteDashboard = () => {
     return classes[area] || "bg-muted text-muted-foreground";
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate("/");
   };
 
@@ -176,7 +176,7 @@ const ClienteDashboard = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <span className="text-foreground">Olá, {user?.nome?.split(" ")[0]}</span>
+            <span className="text-foreground">Olá, {profile?.nome?.split(" ")[0]}</span>
             <Button variant="outline" size="sm" onClick={handleLogout}>
               <LogOut className="w-4 h-4 mr-2" />
               Sair

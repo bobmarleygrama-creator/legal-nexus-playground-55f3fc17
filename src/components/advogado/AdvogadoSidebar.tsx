@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
   Users, FileText, Calculator, Brain, FolderOpen, 
-  ChevronLeft, ChevronRight, Lock, Scale, Crown
+  ChevronLeft, ChevronRight, Lock, Scale, Crown, CalendarDays
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,6 +23,7 @@ interface SidebarItem {
 const sidebarItems: SidebarItem[] = [
   { icon: Users, label: "Minha Carteira", href: "/dashboard/advogado/clientes", premium: true },
   { icon: FolderOpen, label: "Gestão de Processos", href: "/dashboard/advogado/processos", premium: true },
+  { icon: CalendarDays, label: "Agenda Jurídica", href: "/dashboard/advogado/agenda", premium: true },
   { icon: FileText, label: "Gerador de Peças", href: "/dashboard/advogado/documentos", premium: true },
   { icon: Calculator, label: "Cálculos Jurídicos", href: "/dashboard/advogado/calculos", premium: true },
   { icon: Brain, label: "IA Jurídica", href: "/dashboard/advogado/ia", premium: true },

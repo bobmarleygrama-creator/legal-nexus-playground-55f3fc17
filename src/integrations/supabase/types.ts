@@ -168,6 +168,76 @@ export type Database = {
           },
         ]
       }
+      legal_appointments: {
+        Row: {
+          advogado_id: string
+          cliente_id: string | null
+          created_at: string | null
+          data_fim: string | null
+          data_inicio: string
+          descricao: string | null
+          id: string
+          lembrete_enviado: boolean | null
+          local: string | null
+          processo_id: string | null
+          tipo: string
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          advogado_id: string
+          cliente_id?: string | null
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio: string
+          descricao?: string | null
+          id?: string
+          lembrete_enviado?: boolean | null
+          local?: string | null
+          processo_id?: string | null
+          tipo?: string
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          advogado_id?: string
+          cliente_id?: string | null
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          descricao?: string | null
+          id?: string
+          lembrete_enviado?: boolean | null
+          local?: string | null
+          processo_id?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_appointments_advogado_id_fkey"
+            columns: ["advogado_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_appointments_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "lawyer_clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_appointments_processo_id_fkey"
+            columns: ["processo_id"]
+            isOneToOne: false
+            referencedRelation: "processes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_calculations: {
         Row: {
           advogado_id: string

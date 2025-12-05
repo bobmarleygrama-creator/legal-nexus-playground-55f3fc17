@@ -22,6 +22,7 @@ import ProcessosPage from "./pages/advogado/ProcessosPage";
 import DocumentosPage from "./pages/advogado/DocumentosPage";
 import CalculosPage from "./pages/advogado/CalculosPage";
 import IAJuridicaPage from "./pages/advogado/IAJuridicaPage";
+import AgendaPage from "./pages/advogado/AgendaPage";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,7 @@ const App = () => {
                 <Route path="home" element={<AdvogadoHome />} />
                 <Route path="clientes" element={<ClientesPage />} />
                 <Route path="processos" element={<ProcessosPage />} />
+                <Route path="agenda" element={<AgendaPage />} />
                 <Route path="documentos" element={<DocumentosPage />} />
                 <Route path="calculos" element={<CalculosPage />} />
                 <Route path="ia" element={<IAJuridicaPage />} />

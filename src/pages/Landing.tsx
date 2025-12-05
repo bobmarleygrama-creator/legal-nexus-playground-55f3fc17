@@ -8,22 +8,20 @@ import { useInView } from "framer-motion";
 
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
-  const [hasAnimated, setHasAnimated] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true, amount: 0.5 });
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
 
   useEffect(() => {
-    if (isInView && !hasAnimated) {
-      setHasAnimated(true);
+    if (isInView) {
       const controls = animate(0, value, {
         duration,
         onUpdate: (v) => setDisplayValue(Math.floor(v)),
       });
       return () => controls.stop();
     }
-  }, [isInView, value, duration, hasAnimated]);
+  }, [isInView, value, duration]);
 
-  return <span ref={ref}>{displayValue.toLocaleString('pt-BR')}</span>;
+  return <div ref={ref} className="inline-block">{displayValue.toLocaleString('pt-BR')}</div>;
 };
 
 const Landing = () => {

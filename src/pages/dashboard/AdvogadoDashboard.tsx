@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Scale, LogOut, Wallet, Users, DollarSign, TrendingUp, 
-  MessageCircle, Mail, CheckCircle, AlertCircle, X, ArrowDownLeft, ArrowUpRight, History
+  MessageCircle, Mail, CheckCircle, AlertCircle, X, ArrowDownLeft, ArrowUpRight, History, MapPin, Filter
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { Storage } from "@/utils/storage";
-import { Caso, LCoinTransaction } from "@/types";
+import { Caso, LCoinTransaction, AREAS_JURIDICAS, AreaJuridica } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 
 const ESTADOS_OAB = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
@@ -34,6 +34,17 @@ const AdvogadoDashboard = () => {
   const [oabEstado, setOabEstado] = useState("SP");
   const [oabVerified, setOabVerified] = useState(false);
   const [verifying, setVerifying] = useState(false);
+  const [filtroEstado, setFiltroEstado] = useState<string>("todos");
+  const [filtroArea, setFiltroArea] = useState<string>("todos");
+
+  // Filtered cases
+  const casosFiltrados = useMemo(() => {
+    return casosNovos.filter(caso => {
+      const matchEstado = filtroEstado === "todos" || caso.cliente_estado === filtroEstado;
+      const matchArea = filtroArea === "todos" || caso.area_juridica === filtroArea;
+      return matchEstado && matchArea;
+    });
+  }, [casosNovos, filtroEstado, filtroArea]);
 
   const LCOIN_PACKAGES = [
     { id: 1, coins: 50, price: 4900, label: "50 L-COIN", priceLabel: "R$ 49,00" },
@@ -225,11 +236,56 @@ const AdvogadoDashboard = () => {
 
           {/* Feed Tab */}
           <TabsContent value="feed">
-            <h2 className="text-lg font-semibold text-muted-foreground uppercase tracking-wide mb-6">
-              Feed de Oportunidades
-            </h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <h2 className="text-lg font-semibold text-muted-foreground uppercase tracking-wide">
+                Feed de Oportunidades
+              </h2>
+              
+              {/* Filters */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Filtros:</span>
+                </div>
+                <Select value={filtroEstado} onValueChange={setFiltroEstado}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todos UFs</SelectItem>
+                    {ESTADOS_OAB.map((uf) => (
+                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={filtroArea} onValueChange={setFiltroArea}>
+                  <SelectTrigger className="w-[150px]">
+                    <SelectValue placeholder="Especialidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todas Áreas</SelectItem>
+                    {AREAS_JURIDICAS.map((area) => (
+                      <SelectItem key={area.value} value={area.value}>
+                        {area.icon} {area.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {(filtroEstado !== "todos" || filtroArea !== "todos") && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => { setFiltroEstado("todos"); setFiltroArea("todos"); }}
+                    className="text-muted-foreground"
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Limpar
+                  </Button>
+                )}
+              </div>
+            </div>
 
-            {casosNovos.length === 0 ? (
+            {casosFiltrados.length === 0 ? (
               <div className="text-center py-16 text-muted-foreground">
                 <Scale className="w-16 h-16 mx-auto mb-4 opacity-30" />
                 <p>Sem novas oportunidades no momento.</p>
@@ -237,7 +293,7 @@ const AdvogadoDashboard = () => {
               </div>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {casosNovos.map((caso, index) => (
+                {casosFiltrados.map((caso, index) => (
                   <motion.div
                     key={caso.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -260,6 +316,12 @@ const AdvogadoDashboard = () => {
                     </div>
 
                     <p className="text-sm font-medium text-foreground mb-2">{caso.cliente_nome}</p>
+                    {(caso.cliente_cidade || caso.cliente_estado) && (
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                        <MapPin className="w-3 h-3" />
+                        {caso.cliente_cidade}{caso.cliente_cidade && caso.cliente_estado && ", "}{caso.cliente_estado}
+                      </p>
+                    )}
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-4">
                       {caso.resumo}
                     </p>

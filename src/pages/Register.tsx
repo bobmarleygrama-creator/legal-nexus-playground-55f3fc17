@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Scale, Mail, Lock, User, Loader2, CheckCircle2, XCircle, Phone } from "lucide-react";
+import { Scale, Mail, Lock, User, Loader2, CheckCircle2, XCircle, Phone, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,12 +9,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
+const ESTADOS_BR = [
+  "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", 
+  "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+];
+
 const Register = () => {
   const [searchParams] = useSearchParams();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [senha, setSenha] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
   const [tipo, setTipo] = useState<"cliente" | "advogado">(
     (searchParams.get("tipo") as "cliente" | "advogado") || "cliente"
   );
@@ -55,7 +62,9 @@ const Register = () => {
   const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   const isWhatsappValid = whatsapp.replace(/\D/g, "").length >= 10;
   const isSenhaValid = senha.length >= 8 && /[a-zA-Z]/.test(senha) && /[0-9]/.test(senha);
-  const isFormValid = isNomeValid && isEmailValid && isSenhaValid && (tipo === "advogado" || isWhatsappValid);
+  const isCidadeValid = cidade.length >= 2;
+  const isEstadoValid = estado.length === 2;
+  const isFormValid = isNomeValid && isEmailValid && isSenhaValid && isCidadeValid && isEstadoValid && (tipo === "advogado" || isWhatsappValid);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,7 +73,15 @@ const Register = () => {
     setError("");
     setLoading(true);
 
-    const result = await register({ nome, email, senha, tipo, whatsapp: tipo === "cliente" ? whatsapp : undefined });
+    const result = await register({ 
+      nome, 
+      email, 
+      senha, 
+      tipo, 
+      whatsapp: tipo === "cliente" ? whatsapp : undefined,
+      cidade,
+      estado,
+    });
 
     if (result.ok) {
       toast({
@@ -186,6 +203,44 @@ const Register = () => {
                   />
                 </div>
                 {whatsapp && <ValidationIndicator isValid={isWhatsappValid} text="WhatsApp válido (mínimo 10 dígitos)" />}
+              </div>
+            )}
+
+            {/* Cidade e Estado */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="col-span-2 space-y-2">
+                <Label htmlFor="cidade">Cidade</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                  <Input
+                    id="cidade"
+                    type="text"
+                    placeholder="Sua cidade"
+                    value={cidade}
+                    onChange={(e) => setCidade(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="estado">UF</Label>
+                <Select value={estado} onValueChange={setEstado}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="UF" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ESTADOS_BR.map((uf) => (
+                      <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {(cidade || estado) && (
+              <div className="flex gap-4">
+                <ValidationIndicator isValid={isCidadeValid} text="Cidade válida" />
+                <ValidationIndicator isValid={isEstadoValid} text="UF selecionado" />
               </div>
             )}
 

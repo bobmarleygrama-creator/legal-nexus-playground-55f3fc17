@@ -1,8 +1,23 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Scale, Users, Shield, Video, CheckCircle, ArrowRight, Sparkles } from "lucide-react";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { Scale, Users, Shield, Video, CheckCircle, ArrowRight, Sparkles, Gavel, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
+import { useEffect, useState } from "react";
+
+const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const controls = animate(0, value, {
+      duration,
+      onUpdate: (v) => setDisplayValue(Math.floor(v)),
+    });
+    return () => controls.stop();
+  }, [value, duration]);
+
+  return <span>{displayValue.toLocaleString('pt-BR')}</span>;
+};
 
 const Landing = () => {
   const features = [
@@ -146,6 +161,36 @@ const Landing = () => {
           <svg viewBox="0 0 1440 120" fill="none" className="w-full">
             <path d="M0 120L60 110C120 100 240 80 360 70C480 60 600 60 720 65C840 70 960 80 1080 85C1200 90 1320 90 1380 90L1440 90V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0V120Z" fill="hsl(var(--background))"/>
           </svg>
+        </div>
+      </section>
+
+      {/* Stats Counter Section */}
+      <section className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { value: 7232, label: "Audiências realizadas", icon: Gavel },
+              { value: 548, label: "Advogados cadastrados", icon: Scale },
+              { value: 2418, label: "Empresas e usuários cadastrados", icon: Building2 },
+            ].map((stat, index) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.15 }}
+                className="text-center p-8 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20"
+              >
+                <div className="w-14 h-14 mx-auto mb-4 rounded-xl gradient-hero flex items-center justify-center">
+                  <stat.icon className="w-7 h-7 text-primary-foreground" />
+                </div>
+                <div className="text-4xl md:text-5xl font-heading font-bold text-primary mb-2">
+                  <AnimatedCounter value={stat.value} />
+                </div>
+                <p className="text-muted-foreground font-medium">{stat.label}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </section>
 

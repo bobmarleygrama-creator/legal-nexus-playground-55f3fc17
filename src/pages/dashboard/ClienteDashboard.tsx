@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Scale, Plus, LogOut, Bell, MessageCircle, Clock, CheckCircle, User } from "lucide-react";
+import { Scale, Plus, LogOut, Bell, MessageCircle, Clock, CheckCircle, User, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -90,6 +90,8 @@ const ClienteDashboard = () => {
       cliente_nome: profile.nome,
       cliente_email: profile.email,
       cliente_whatsapp: profile.whatsapp,
+      cliente_cidade: profile.cidade,
+      cliente_estado: profile.estado,
       area_juridica: areaJuridica,
       resumo: resumo.trim(),
       status: "novo",
@@ -235,6 +237,13 @@ const ClienteDashboard = () => {
                     {formatDate(caso.criado_em)}
                   </span>
                 </div>
+                
+                {(caso.cliente_cidade || caso.cliente_estado) && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
+                    <MapPin className="w-3 h-3" />
+                    {caso.cliente_cidade}{caso.cliente_cidade && caso.cliente_estado && ", "}{caso.cliente_estado}
+                  </div>
+                )}
 
                 <p className="text-foreground text-sm mb-4 line-clamp-3">
                   {caso.resumo}

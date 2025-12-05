@@ -13,6 +13,8 @@ interface Profile {
   saldo_lcoin?: number;
   premium_ativo?: boolean;
   created_at?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 interface AuthContextType {
@@ -33,6 +35,8 @@ interface RegisterForm {
   senha: string;
   tipo: "cliente" | "advogado";
   whatsapp?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -71,6 +75,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         email: userEmail,
         tipo: userMeta?.tipo || 'cliente',
         whatsapp: userMeta?.whatsapp || null,
+        cidade: userMeta?.cidade || null,
+        estado: userMeta?.estado || null,
         saldo_lcoin: 0,
         premium_ativo: false,
       };
@@ -176,6 +182,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           nome: form.nome,
           tipo: form.tipo,
           whatsapp: form.tipo === "cliente" ? form.whatsapp : undefined,
+          cidade: form.cidade,
+          estado: form.estado,
         },
       },
     });

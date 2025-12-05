@@ -19,6 +19,8 @@ export interface Caso {
   cliente_nome: string;
   cliente_email: string;
   cliente_whatsapp?: string;
+  cliente_cidade?: string;
+  cliente_estado?: string;
   advogado_id?: string;
   advogado_nome?: string;
   area_juridica: AreaJuridica;

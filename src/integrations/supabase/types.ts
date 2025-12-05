@@ -463,8 +463,10 @@ export type Database = {
       }
       profiles: {
         Row: {
+          cidade: string | null
           created_at: string | null
           email: string
+          estado: string | null
           id: string
           nome: string
           oab_numero: string | null
@@ -476,8 +478,10 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          cidade?: string | null
           created_at?: string | null
           email: string
+          estado?: string | null
           id: string
           nome: string
           oab_numero?: string | null
@@ -489,8 +493,10 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          cidade?: string | null
           created_at?: string | null
           email?: string
+          estado?: string | null
           id?: string
           nome?: string
           oab_numero?: string | null

@@ -3,20 +3,27 @@ import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { Scale, Users, Shield, Video, CheckCircle, ArrowRight, Sparkles, Gavel, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useInView } from "framer-motion";
 
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   useEffect(() => {
-    const controls = animate(0, value, {
-      duration,
-      onUpdate: (v) => setDisplayValue(Math.floor(v)),
-    });
-    return () => controls.stop();
-  }, [value, duration]);
+    if (isInView && !hasAnimated) {
+      setHasAnimated(true);
+      const controls = animate(0, value, {
+        duration,
+        onUpdate: (v) => setDisplayValue(Math.floor(v)),
+      });
+      return () => controls.stop();
+    }
+  }, [isInView, value, duration, hasAnimated]);
 
-  return <span>{displayValue.toLocaleString('pt-BR')}</span>;
+  return <span ref={ref}>{displayValue.toLocaleString('pt-BR')}</span>;
 };
 
 const Landing = () => {

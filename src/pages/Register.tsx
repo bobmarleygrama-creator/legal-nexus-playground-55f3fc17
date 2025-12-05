@@ -153,6 +153,19 @@ const Register = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="tipo">Tipo de Conta</Label>
+              <Select value={tipo} onValueChange={(v) => setTipo(v as "cliente" | "advogado")}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cliente">👤 Cliente - Preciso de um advogado</SelectItem>
+                  <SelectItem value="advogado">⚖️ Advogado - Quero atender clientes</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="nome">Nome Completo</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -265,19 +278,6 @@ const Register = () => {
                   <ValidationIndicator isValid={/[0-9]/.test(senha)} text="Pelo menos um número" />
                 </div>
               )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo de Conta</Label>
-              <Select value={tipo} onValueChange={(v) => setTipo(v as "cliente" | "advogado")}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cliente">👤 Cliente - Preciso de um advogado</SelectItem>
-                  <SelectItem value="advogado">⚖️ Advogado - Quero atender clientes</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             {error && (

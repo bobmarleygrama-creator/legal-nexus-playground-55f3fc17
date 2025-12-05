@@ -9,8 +9,8 @@ import { useInView } from "framer-motion";
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
   const [hasAnimated, setHasAnimated] = useState(false);
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, amount: 0.5 });
 
   useEffect(() => {
     if (isInView && !hasAnimated) {
@@ -172,8 +172,25 @@ const Landing = () => {
       </section>
 
       {/* Stats Counter Section */}
-      <section className="py-16 bg-background">
+      <section className="py-20 bg-background">
         <div className="container mx-auto px-4">
+          {/* Main Stat - Match's */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full gradient-hero mb-6">
+              <Users className="w-10 h-10 text-primary-foreground" />
+            </div>
+            <div className="text-6xl md:text-8xl font-heading font-bold text-primary mb-3">
+              <AnimatedCounter value={2390} duration={2.5} />
+            </div>
+            <p className="text-xl md:text-2xl text-muted-foreground font-semibold">Match's realizados</p>
+          </motion.div>
+
+          {/* Secondary Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               { value: 7232, label: "Audiências realizadas", icon: Gavel },

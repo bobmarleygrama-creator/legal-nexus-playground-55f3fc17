@@ -23,6 +23,7 @@ import DocumentosPage from "./pages/advogado/DocumentosPage";
 import CalculosPage from "./pages/advogado/CalculosPage";
 import IAJuridicaPage from "./pages/advogado/IAJuridicaPage";
 import AgendaPage from "./pages/advogado/AgendaPage";
+import DashboardAnalytics from "./pages/advogado/DashboardAnalytics";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => {
               <Route path="/dashboard/advogado" element={<AdvogadoLayout />}>
                 <Route index element={<AdvogadoHome />} />
                 <Route path="home" element={<AdvogadoHome />} />
+                <Route path="analytics" element={<DashboardAnalytics />} />
                 <Route path="clientes" element={<ClientesPage />} />
                 <Route path="processos" element={<ProcessosPage />} />
                 <Route path="agenda" element={<AgendaPage />} />
